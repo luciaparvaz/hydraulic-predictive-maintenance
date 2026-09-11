@@ -1,0 +1,19 @@
+ucimlrepo>=0.0.7      # usado solo en el bloque __main__ de src/data_loader.py como comprobación diagnóstica
+                       # (se espera que falle: el dataset 447 no está habilitado vía esta librería, ver docstring
+                       # del módulo); no es una dependencia real del pipeline de carga/entrenamiento
+pandas>=2.0
+numpy>=1.26
+scipy>=1.11            # FALTABA: usado en scipy.stats (spearmanr, chi2, median_abs_deviation), scipy.ndimage
+                       # (uniform_filter1d) y scipy.spatial.distance en varios notebooks y en src/feature_engineering.py
+matplotlib>=3.8
+seaborn>=0.13
+scikit-learn>=1.4
+pyarrow>=15.0           # no se importa por nombre, pero es el motor que pandas usa para leer/escribir *.parquet
+                       # en las 5 fases — dependencia real, aunque transitiva
+jupyter>=1.0            # entorno de ejecución de los notebooks (jupyter nbconvert), no una librería que el
+                       # código importe con `import`
+
+# Eliminados: xgboost, shap, optuna, imbalanced-learn, torch, joblib — ninguno se importa en ningún notebook
+# ni en ningún módulo de src/. torch estaba previsto para el autoencoder planeado en la Fase 3, que se
+# sustituyó por Isolation Forest (ver Decisión de esa sección); los otros cuatro nunca llegaron a usarse.
+# joblib tampoco serializa ningún modelo en el proyecto (models/ queda vacío, ver README).

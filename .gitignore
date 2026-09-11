@@ -1,0 +1,29 @@
+# Datos crudos (531 MB, descargables vía src/data_loader.py; dataset UCI 447, CC BY 4.0 — ver README)
+# data/processed/ SÍ se versiona: son los artefactos/resultados documentados del pipeline (~1 MB), no
+# solo cache regenerable — equivalente a un outputs/tables/ en otros proyectos.
+data/raw/*
+!data/raw/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+venv/
+env/
+.pytest_cache/
+
+# Jupyter
+*.nbconvert.ipynb
+
+# Secretos / config local
+.env
+*.env
+
+# IDE
+.vscode/
+.idea/
+
+# SO
+.DS_Store
+Thumbs.db
