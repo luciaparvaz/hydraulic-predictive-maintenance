@@ -17,7 +17,7 @@ Cada notebook sigue el patrón **Decisión → Código → Interpretación**: to
 
 Los cuatro targets se combinan en un **diseño factorial de 144 celdas** (3×4×3×4), cruzadas de forma controlada — no es una serie temporal de degradación de una sola máquina, sino experimentos de laboratorio independientes. Esta propiedad estructural condiciona buena parte de las decisiones metodológicas del proyecto (ver Fase 3 y Limitaciones).
 
-`ucimlrepo.fetch_ucirepo(id=447)` falla (`DatasetNotFoundError`) — el dataset no está habilitado para import programático vía esa librería pese a estar listado en el repositorio. `src/data_loader.py` descarga el ZIP estático público directamente en su lugar; ver el docstring del módulo para el detalle de esa verificación.
+`ucimlrepo.fetch_ucirepo(id=447)` falla (`DatasetNotFoundError`) — el dataset no está habilitado para import programático vía esa librería pese a estar listado en el repositorio. [`src/data_loader.py`](src/data_loader.py) descarga el ZIP estático público directamente en su lugar; ver el docstring del módulo para el detalle de esa verificación.
 
 ## Estructura del proyecto
 
@@ -40,23 +40,24 @@ hydraulic_maintenance/
 ├── reports/figures/                # 9 figuras — ver tabla abajo
 ├── models/                         # reservado; sin modelos serializados (ver nota abajo)
 ├── requirements.txt
+├── LICENSE
 └── README.md
 ```
 
-**Nota sobre `src/`:** los cuatro módulos están completos — `data_loader.py`, `feature_engineering.py`, `models.py` y `visualization.py` —, todos refactorizados desde lógica de notebook ya ejecutada con 0 errores, sin alterar ninguna fórmula, hiperparámetro ni criterio de selección respecto a lo validado en los notebooks. `models/` sigue vacío: los modelos de las Fases 3 y 4 se entrenan y evalúan dentro del propio notebook (o mediante `src/models.py`), pero ninguno se serializa a disco. No hay ningún `.pkl`/`.joblib` que cargar — para obtener un modelo entrenado hay que reentrenarlo ejecutando los notebooks en orden (o llamando a `train_classifier`/`train_mahalanobis_detector`/`train_isolation_forest_detector` de `src/models.py` sobre los artefactos de `data/processed/`), no recuperarlo de disco.
+**Nota sobre `src/`:** los cuatro módulos están completos — [`data_loader.py`](src/data_loader.py), [`feature_engineering.py`](src/feature_engineering.py), [`models.py`](src/models.py) y [`visualization.py`](src/visualization.py) —, todos refactorizados desde lógica de notebook ya ejecutada con 0 errores, sin alterar ninguna fórmula, hiperparámetro ni criterio de selección respecto a lo validado en los notebooks. `models/` sigue vacío: los modelos de las Fases 3 y 4 se entrenan y evalúan dentro del propio notebook (o mediante `src/models.py`), pero ninguno se serializa a disco. No hay ningún `.pkl`/`.joblib` que cargar — para obtener un modelo entrenado hay que reentrenarlo ejecutando los notebooks en orden (o llamando a `train_classifier`/`train_mahalanobis_detector`/`train_isolation_forest_detector` de `src/models.py` sobre los artefactos de `data/processed/`), no recuperarlo de disco.
 
 ## Pipeline por fases
 
-### Fase 1 — EDA (`01_eda.ipynb`)
+### Fase 1 — EDA ([`01_eda.ipynb`](notebooks/01_eda.ipynb))
 Confirma el diseño factorial de 144 combinaciones, identifica que `cooler_condition` domina la varianza de la mayoría de sensores, y que la posición temporal del pico en `PS3` (no su nivel) es el indicador más informativo de degradación de la válvula. Detecta 2 ciclos atípicos (617, 371) mediante MAD condicionado por grupo, no un umbral global.
 
-### Fase 2 — Feature engineering (`02_feature_engineering.ipynb`)
+### Fase 2 — Feature engineering ([`02_feature_engineering.ipynb`](notebooks/02_feature_engineering.ipynb))
 Reduce cada ciclo de hasta 6000 lecturas por sensor a **73 features escalares** (medias, desviaciones, mitades temporales, diferenciales entre sensores, posición del pico), seleccionadas por η² frente a los 4 targets. Exporta `X_train`/`X_test` (1157/290 ciclos, split 80/20) y `y_train`/`y_test` a Parquet.
 
-### Fase 3 — Detección de anomalías (`03_anomaly_detection.ipynb`)
+### Fase 3 — Detección de anomalías ([`03_anomaly_detection.ipynb`](notebooks/03_anomaly_detection.ipynb))
 Muestra, con evidencia cuantitativa, que la detección no supervisada **falla en este dataset concreto**: el estado "los 4 componentes óptimos a la vez" es solo 1 de 144 combinaciones (8 ciclos en train, 0.69%) — la combinación *más rara* del diseño, no la más común, invirtiendo la premisa bajo la que operan estos métodos. Mahalanobis con regularización LedoitWolf alcanza AUC-ROC=1.0000 en test, pero por un artefacto de escalado (una sola feature con varianza casi nula en los 8 ciclos de referencia) ligado a `cooler_condition`, no por una distancia multivariante fiable. Isolation Forest obtiene AUC-ROC=**0.2743** — peor que el azar — porque detecta rareza estadística, y el estado sano es precisamente lo más raro del diseño.
 
-### Fase 4 — Clasificación supervisada (`04_failure_prediction.ipynb`)
+### Fase 4 — Clasificación supervisada ([`04_failure_prediction.ipynb`](notebooks/04_failure_prediction.ipynb))
 Entrena un clasificador independiente por componente (Random Forest / Regresión Logística), validado por CV de 5 folds y evaluado en test sellado:
 
 | Target | Modelo elegido | Test F1-macro | IC95% (bootstrap, 1000 remuestras) | Δ vs. CV |
@@ -70,7 +71,7 @@ Entrena un clasificador independiente por componente (Random Forest / Regresión
 
 Hallazgo central: para `accumulator_pressure`, la importancia de features de Random Forest está **negativamente correlacionada** con su η² univariante de la Fase 2 (Spearman ρ=-0.3742) — las features más útiles para el modelo (`FS2_*`) tienen η²≈0.003, prácticamente nulo en aislamiento. Explica directamente por qué Regresión Logística cae a 82.28% F1-macro en ese mismo target (98.44% con RF): la señal es de interacción, no de desplazamiento lineal de medias, y ningún análisis univariante podía haberlo anticipado.
 
-### Fase 5 — Proxy de RUL (`05_rul_proxy.ipynb`)
+### Fase 5 — Proxy de RUL ([`05_rul_proxy.ipynb`](notebooks/05_rul_proxy.ipynb))
 Combina las 4 predicciones de la Fase 4 en un índice de salud compuesto `H_mean ∈ [0,1]` (media de degradación normalizada por componente, complementada a 1). Validado internamente (decrece monótonamente con la degradación real del refrigerador: 0.627→0.502→0.369 según el nivel) y cruzadamente contra los scores de la Fase 3 (ρ=-0.567 con Mahalanobis, ρ=-0.190 con Isolation Forest — magnitudes coherentes con el AUC de cada detector en la Fase 3). Exporta `rul_proxy_test.parquet` como artefacto final del pipeline.
 
 ## Artefactos en `data/processed/`
