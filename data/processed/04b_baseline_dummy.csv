@@ -1,0 +1,9 @@
+target,strategy,test_f1_macro
+cooler_condition,most_frequent,0.1683848797250859
+cooler_condition,stratified,0.32749304077288355
+valve_condition,most_frequent,0.10164835164835165
+valve_condition,stratified,0.27209973676449284
+pump_leakage,most_frequent,0.1683848797250859
+pump_leakage,stratified,0.32442150846483
+accumulator_pressure,most_frequent,0.10164835164835165
+accumulator_pressure,stratified,0.2590546196583106

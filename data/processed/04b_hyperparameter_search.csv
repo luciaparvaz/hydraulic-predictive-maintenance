@@ -1,0 +1,5 @@
+target,model,n_iter_search,cv_f1_macro_default,cv_f1_macro_tuned,best_params
+cooler_condition,RandomForest,30,1.0,1.0,"{'class_weight': None, 'max_depth': 15, 'max_features': 'sqrt', 'min_samples_leaf': 3, 'n_estimators': 171}"
+valve_condition,LogisticRegression,30,0.9982596852300242,0.9982596852300242,"{'clf__C': np.float64(3.7554011884736247), 'clf__class_weight': None}"
+pump_leakage,RandomForest,30,0.9947992438704514,0.9965253314029905,"{'class_weight': 'balanced', 'max_depth': None, 'max_features': 'sqrt', 'min_samples_leaf': 1, 'n_estimators': 256}"
+accumulator_pressure,RandomForest,30,0.9844805662121967,0.9870829293464016,"{'class_weight': 'balanced', 'max_depth': None, 'max_features': 'sqrt', 'min_samples_leaf': 1, 'n_estimators': 256}"

@@ -1,0 +1,9 @@
+target,model,class_weight,cv_f1_macro_mean,cv_f1_macro_std
+cooler_condition,RandomForest,default (None),1.0,0.0
+cooler_condition,RandomForest,balanced,1.0,0.0
+valve_condition,LogisticRegression,default (None),0.9982596852300242,0.003480629539951563
+valve_condition,LogisticRegression,balanced,0.9982596852300242,0.003480629539951563
+pump_leakage,RandomForest,default (None),0.9947992438704514,0.005038282325932153
+pump_leakage,RandomForest,balanced,0.9956595305371897,0.0038785728548808456
+accumulator_pressure,RandomForest,default (None),0.9844805662121967,0.00749943782468968
+accumulator_pressure,RandomForest,balanced,0.9827784950777001,0.009407462166235005

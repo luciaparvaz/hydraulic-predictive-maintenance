@@ -1,17 +1,28 @@
-ucimlrepo>=0.0.7      # usado solo en el bloque __main__ de src/data_loader.py como comprobación diagnóstica
+ucimlrepo==0.0.7      # usado solo en el bloque __main__ de src/data_loader.py como comprobación diagnóstica
                        # (se espera que falle: el dataset 447 no está habilitado vía esta librería, ver docstring
                        # del módulo); no es una dependencia real del pipeline de carga/entrenamiento
-pandas>=2.0
-numpy>=1.26
-scipy>=1.11            # FALTABA: usado en scipy.stats (spearmanr, chi2, median_abs_deviation), scipy.ndimage
-                       # (uniform_filter1d) y scipy.spatial.distance en varios notebooks y en src/feature_engineering.py
-matplotlib>=3.8
-seaborn>=0.13
-scikit-learn>=1.4
-pyarrow>=15.0           # no se importa por nombre, pero es el motor que pandas usa para leer/escribir *.parquet
+pandas==2.2.3
+numpy==2.0.2
+scipy==1.17.1           # usado en scipy.stats (spearmanr, chi2, median_abs_deviation, randint/uniform en
+                       # src/validation.py), scipy.ndimage (uniform_filter1d) y scipy.spatial.distance
+matplotlib==3.10.0
+seaborn==0.13.2
+scikit-learn==1.6.1
+statsmodels==0.14.4     # AÑADIDO (Fase 4b): src/validation.py usa statsmodels.stats.contingency_tables.mcnemar
+                       # para el test de McNemar real entre RF y LR (antes solo citado en prosa, sin código
+                       # que lo produjera) — verificado compatible con la versión de scipy fijada arriba
+pyarrow==24.0.0         # no se importa por nombre, pero es el motor que pandas usa para leer/escribir *.parquet
                        # en las 5 fases — dependencia real, aunque transitiva
-jupyter>=1.0            # entorno de ejecución de los notebooks (jupyter nbconvert), no una librería que el
+jupyter==1.0.0           # entorno de ejecución de los notebooks (jupyter nbconvert), no una librería que el
                        # código importe con `import`
+
+# Nota (Fase 4b): versiones pineadas a exacto (antes usaban >=) para que las cifras de
+# run_validation_fixes.py sean reproducibles bit-a-bit; el entorno usado para generarlas es
+# Python 3.12.3. Con scikit-learn>=1.5, LogisticRegression(multi_class="multinomial") emite un
+# FutureWarning (se elimina en 1.7) y, verificado empíricamente, el F1-macro de test de Regresión
+# Logística en `accumulator_pressure` no reproduce el valor citado en una versión anterior de este
+# README bajo un scikit-learn distinto (86.02% recalculado aquí vs. 82.28% citado antes, mismo
+# random_state e hiperparámetros) — ver la sección "Generalización" del README para el detalle.
 
 # Eliminados: xgboost, shap, optuna, imbalanced-learn, torch, joblib — ninguno se importa en ningún notebook
 # ni en ningún módulo de src/. torch estaba previsto para el autoencoder planeado en la Fase 3, que se

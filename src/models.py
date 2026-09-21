@@ -259,18 +259,33 @@ def select_best_model(target: str) -> str:
     los comentarios de `_BEST_MODEL_BY_TARGET` para los números de CV F1-macro y el
     delta que justificó cada elección). No vuelve a entrenar ni evaluar nada.
 
-    Limitación estadística conocida: para `valve_condition` (delta=+0.61pp a favor de
-    LR) y `pump_leakage` (delta=+0.43pp a favor de RF), el margen de CV es inferior a
-    1 punto porcentual y la elección de modelo **no está respaldada por una prueba de
+    Limitación estadística conocida, ahora verificada con código real en
+    `src/validation.py` (Fase 4b, ver `run_validation_fixes.py` y la sección
+    "Generalización a puntos de operación nuevos" del README) en vez de solo citada en
+    este docstring: para `valve_condition` (delta CV +0.61pp a favor de LR) y
+    `pump_leakage` (delta CV +0.43pp a favor de RF), el margen de CV es inferior a 1
+    punto porcentual y la elección de modelo **no está respaldada por una prueba de
     significancia estadística**. Un test de McNemar pareado sobre las predicciones de
-    test (n=290) para ambos targets da p≥0.5 (no significativo) — el ranking por CV es
-    direccionalmente estable entre semillas, pero no es distinguible de ruido de
-    muestreo con este tamaño de test. Para `accumulator_pressure` (delta=+16.38pp) la
-    diferencia sí es sustancial y McNemar la confirma como significativa incluso tras
-    corrección FDR. `cooler_condition` es un empate exacto (delta=0.0000), sin ambigüedad
-    posible. Esta limitación no se ha corregido en el código (cambiar la selección de
-    modelo alteraría resultados ya validados por ejecución) — se documenta aquí para que
-    quien reutilice `train_classifier`/`select_best_model` conozca su alcance real.
+    test (n=290, `statsmodels.stats.contingency_tables.mcnemar`,
+    `data/processed/04b_mcnemar_bootstrap.csv`) para ambos targets da p=1.0000 y
+    p=0.5000 respectivamente (no significativo). Para `accumulator_pressure`
+    (delta CV +16.38pp) la diferencia sí es sustancial y McNemar la confirma como
+    significativa (p=6.6e-8) incluso tras corrección FDR de Benjamini-Hochberg sobre
+    los 4 targets (p_FDR=2.7e-7) — la corrección FDR mencionada aquí antes no tenía
+    código que la calculara; ahora sí lo tiene (`multipletests` en
+    `src/validation.py::mcnemar_bootstrap_report`). `cooler_condition` es un empate
+    exacto (delta=0.0000), sin ambigüedad posible. Esta limitación no se ha corregido
+    en `select_best_model` (cambiar la selección de modelo alteraría resultados ya
+    validados por ejecución) — se documenta aquí, y con más detalle en el README, para
+    que quien reutilice `train_classifier`/`select_best_model` conozca su alcance real.
+
+    Advertencia adicional (Fase 4b): el F1-macro de test reportado arriba para cada
+    target mide interpolación dentro de celdas del diseño factorial ya vistas en train
+    (el split de la Fase 2 estratifica por la combinación completa de los 4 targets).
+    Para `accumulator_pressure`, una evaluación `GroupKFold` que impide que ninguna
+    celda aparezca a ambos lados da F1-macro=0.8421±0.0410, **14.4 puntos porcentuales
+    por debajo** del 0.9863 de test — ver `src/validation.py::grouped_generalization_report`
+    y la sección "Generalización a puntos de operación nuevos" del README.
 
     Args:
         target: nombre del target — una de `COMPONENT_TARGETS`.
