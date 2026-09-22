@@ -2,6 +2,8 @@
 
 🇬🇧 [English](#english) · 🇪🇸 [Español](#español)
 
+![Per-component degradation classification results — confusion matrices for cooler, valve, pump and accumulator](reports/figures/04_confusion_matrices.png)
+
 ---
 
 ## English
